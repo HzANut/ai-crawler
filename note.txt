@@ -1,0 +1,6 @@
+# How to create active venv
+cd <Workspace>\Scripts
+.\Activate.ps1
+code .
+
+https://code.visualstudio.com/docs/python/python-tutorialn 
