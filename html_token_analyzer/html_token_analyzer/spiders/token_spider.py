@@ -54,16 +54,16 @@ class TokenSpider(scrapy.Spider):
             print(f'########################## element: {element} - {self.count_token(element, token)}')
             return self.count_token(element, token)
             
-        curr_token_count = 0
+        curr_token_count = self.count_token_in_element(element, token)
+        print(f'current token count: {curr_token_count} ')
+        children_token_count = 0
 
         children = self.find_children(element)
         # print(f'children **** {children}')
         for child in children:
             child_token_count = self.find_token_in_layers(child, token, token_stats, current_layer+1)
             print(f'child token count: {child_token_count} child: {child} next layer: {current_layer + 1}')
-            curr_token_count += child_token_count
-        
-
+            children_token_count += child_token_count
 
         # for child in element.find_all():
 
@@ -74,24 +74,27 @@ class TokenSpider(scrapy.Spider):
 
         # if current_layer not in token_stats:
         #     token_stats[current_layer] = 0
-        token_stats[current_layer] = curr_token_count
+        token_stats[current_layer] = curr_token_count - children_token_count
 
 
-        return curr_token_count
+        return children_token_count
 
     def find_children(self, element):
         return [child for child in element.contents if child != '\n']
 
-    def element_with_token(self, element, token):
-        tags = element.find_all(token)
-        return tags
+    # def elements_with_token(self, element, token):
+    #     tags = element.find_all(token)
+    #     print(f'******************* tags: {tags}')
+    #     return tags
 
     def count_token_in_element(self, element, token):
-        tags = self.element_with_token(element, token)
+        text = element.get_text()
+        return text.lower().count(token.lower())
+        # tags = self.elements_with_token(element, token)
         
-        counts = [self.count_token(tag, token) for tag in tags]
+        # counts = [self.count_token(tag, token) for tag in tags]
 
-        return sum(counts)
+        # return sum(counts)
         
 
     # def get_tokens_by_layer(self, soup, layer=0, stats=None):
@@ -102,6 +105,32 @@ class TokenSpider(scrapy.Spider):
     #     for child in soup.children:
     #         if hasattr(child, 'children'):
     #             self.get_tokens_by_layer(child, layer + 1, stats)
+
+    def token_layer_stats(self, element, token, token_stats, current_layer = 1, max_layers = 4):
+               # element_copy = BeautifulSoup(str(element), 'html.parser')
+
+        if current_layer - 1 > max_layers:
+            return 0
+        
+        if self.is_bottom(element):
+            return self.count_token(element, token)
+            
+        curr_token_count = 0
+
+        children = self.find_children(element)
+        for child in children:
+            child_token_count = self.token_layer_stats(child, token, token_stats, current_layer+1)
+            if self.is_bottom(child):
+                curr_token_count += child_token_count
+
+        token_stats[current_layer] = curr_token_count
+
+
+        return curr_token_count
+    
+    def is_bottom(self, element):
+        return len(element.contents) == 1 and not isinstance(element.contents[0], bs4.element.Tag)
+
 
     def print_stats(self, stats):
         for page, layers in stats.items():

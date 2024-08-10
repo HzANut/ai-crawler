@@ -90,60 +90,69 @@ class TestTokenSpider(unittest.TestCase):
 
         self.spider.find_token_in_layers(soup, token, token_stats)
 
-        print(f'================= token_stats: {token_stats}')
+        # print(f'================= token_stats: {token_stats}')
 
 
-    def test_element_with_token(self):
-        token = "a"
+    # def test_elements_with_token(self):
+    #     token = "a"
 
-        token_stats = defaultdict(int)
+    #     token_stats = defaultdict(int)
 
-        html_content = """
-            <a>
-                <p>a</p>
-                <div>
-                    <span>A</span>
-                    <div>Ta</div>
-                </div>
-                <p>AA</p>
-            </a>
-            """
-        soup = BeautifulSoup(html_content, 'html.parser')
+    #     html_content = """
+    #         <a>
+    #             <p>a</p>
+    #             <div>
+    #                 <span>A</span>
+    #                 <div>Ta</div>
+    #             </div>
+    #             <p>AA</p>
+    #         </a>
+    #         """
+    #     soup = BeautifulSoup(html_content, 'html.parser')
 
-        self.spider.element_with_token(soup, token)
+    #     count = self.spider.elements_with_token(soup, token)
+        
 
     def test_count_token_in_element(self):
         token = "a"
 
         token_stats = defaultdict(int)
 
+        # html_content = """
+        #     <a>
+        #         <p>a</p>
+        #         <div>
+        #             <span>A</span>
+        #             <div>Ta</div>
+        #         </div>
+        #         <p>AA</p>
+        #     </a>
+        #     """
         html_content = """
-            <a>
-                <p>a</p>
-                <div>
-                    <span>A</span>
-                    <div>Ta</div>
-                </div>
-                <p>AA</p>
-            </a>
-            """
+            <div>
+                <span>A</span>
+                <div>Ta</div>
+            </div>
+        """
         soup = BeautifulSoup(html_content, 'html.parser')
         count = self.spider.count_token_in_element(soup, token)
         # print(f'count: {count}')
+        self.assertIsInstance(count, int)
+        self.assertEqual(count, 2)
 
-    def test_find_children(self):
-        html_content = """
-            <a>
-                <p>a</p>
-                <div>
-                    <span>A</span>
-                    <div>Ta</div>
-                </div>
-                <p>AA</p>
-            </a>
-            """
-        soup = BeautifulSoup(html_content, 'html.parser')
-        children = self.spider.find_children(soup)
+    # def test_find_children(self):
+    #     html_content = """
+    #         <a>
+    #             <p>a</p>
+    #             <div>
+    #                 <span>A</span>
+    #                 <div>Ta</div>
+    #             </div>
+    #             <p>AA</p>
+    #         </a>
+    #         """
+    #     soup = BeautifulSoup(html_content, 'html.parser')
+    #     children = self.spider.find_children(soup)
         # print(type(children[0]))
         # print(f'children: {children}')
 
@@ -165,7 +174,28 @@ class TestTokenSpider(unittest.TestCase):
     #     soup = BeautifulSoup(html_content, 'html.parser')
     #     count = self.spider.count_token_in_element(soup, token)
     #     print(f'count: {count}')
-    
+
+    def test_toekn_layer_stats(self):
+        token = "a"
+
+        token_stats = defaultdict(int)
+
+        html_content = """
+            <a>
+                <p>a</p>
+                <div>
+                    <p>b</p>
+                    <span>A</span>
+                    <div>Ta</div>
+                </div>
+                <p>AA</p>
+            </a>
+            """
+
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        self.spider.token_layer_stats(soup, token, token_stats)
+        print(f'================= token_stats: {token_stats}')
 
     def tearDown(self):
         # Code that runs after each test, often used to clean up
