@@ -8,6 +8,7 @@ from . import test_util
 class TestTokenSpider(unittest.TestCase):
     def setUp(self):
         self.spider = TokenSpider(urls="http://example.com, http://example.org")
+        
 
     def test_start_requests(self):
         generated_requests = list(self.spider.start_requests())
@@ -29,6 +30,7 @@ class TestTokenSpider(unittest.TestCase):
         # print(f'token[{token}] - count[{count}]')
         self.assertEqual(count, 5)
 
+
     def test_find_token_in_layers(self):
         token_stats = defaultdict(int)
         soup = BeautifulSoup(test_util.html_content_a, 'html.parser')
@@ -36,7 +38,6 @@ class TestTokenSpider(unittest.TestCase):
         self.spider.find_token_in_layers(soup, test_util.token_a, token_stats)
         self.assertDictEqual(token_stats, {3:2, 2:5, 1:5})
 
-        # print(f'================= token_stats: {token_stats}')
 
     def test_find_children(self):
         soup = BeautifulSoup(test_util.html_content_a, 'html.parser')
@@ -45,6 +46,7 @@ class TestTokenSpider(unittest.TestCase):
         # print(f'children: {children}')
         self.assertEqual(len(children), 1)
 
+
     def test_toekn_layer_stats(self):
         token_stats = defaultdict(int)
         soup = BeautifulSoup(test_util.html_content_a, 'html.parser')
@@ -52,6 +54,7 @@ class TestTokenSpider(unittest.TestCase):
         self.spider.token_layer_stats(soup, test_util.token_a, token_stats)
         # print(f'token_stats: {token_stats}')
         self.assertDictEqual(token_stats, {3: 2, 2: 3, 1: 0})
+
 
     def tearDown(self):
         # Code that runs after each test, often used to clean up
