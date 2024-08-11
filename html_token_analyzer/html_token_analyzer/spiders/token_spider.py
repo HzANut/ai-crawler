@@ -37,7 +37,7 @@ class TokenSpider(scrapy.Spider):
         return element_text.count(token.lower())
 
 
-    def find_token_in_layers(self, element, token, token_stats, current_layer=1, max_layers=4):
+    def token_layer_stats_including_nested(self, element, token, token_stats, current_layer=1, max_layers=4):
 
         if current_layer - 1 > max_layers:
             return 0
@@ -49,7 +49,7 @@ class TokenSpider(scrapy.Spider):
 
         children = self.find_children(element)
         for child in children:
-            child_token_count = self.find_token_in_layers(child, token, token_stats, current_layer+1)
+            child_token_count = self.token_layer_stats_including_nested(child, token, token_stats, current_layer+1)
             # print(f'child token count: {child_token_count} child: {child} next layer: {current_layer + 1}')
             curr_token_count += child_token_count
 

@@ -8,7 +8,7 @@ from . import test_util
 class TestTokenSpider(unittest.TestCase):
     def setUp(self):
         self.spider = TokenSpider(urls="http://example.com, http://example.org")
-        
+
 
     def test_start_requests(self):
         generated_requests = list(self.spider.start_requests())
@@ -31,11 +31,11 @@ class TestTokenSpider(unittest.TestCase):
         self.assertEqual(count, 5)
 
 
-    def test_find_token_in_layers(self):
+    def test_token_layer_stats_including_nested(self):
         token_stats = defaultdict(int)
         soup = BeautifulSoup(test_util.html_content_a, 'html.parser')
 
-        self.spider.find_token_in_layers(soup, test_util.token_a, token_stats)
+        self.spider.token_layer_stats_including_nested(soup, test_util.token_a, token_stats)
         self.assertDictEqual(token_stats, {3:2, 2:5, 1:5})
 
 
