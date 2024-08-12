@@ -4,3 +4,5 @@ cd <Workspace>\Scripts
 code .
 
 https://code.visualstudio.com/docs/python/python-tutorialn 
+
+PS C:\Users\xilua\My Drive\Workspace\llm_web_crawler\html_token_analyzer> python -m unittest .\html_token_analyzer_test\test_token_spider.py

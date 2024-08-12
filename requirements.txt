@@ -2,3 +2,4 @@ scrapy
 beautifulsoup4 
 pytest
 nltk
+html5lib
