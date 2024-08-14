@@ -36,7 +36,7 @@ class TokenSpider(scrapy.Spider):
         try:
             # print(response.body)
             soup = BeautifulSoup(self.decoding_response(response), 'lxml')
-            # print(f'soup:{soup.get_text()}')
+            # print(f'soup:{soup.body.get_text()}')
             self.token_layer_stats(soup.body, self.token, self.token_stats, current_layer=1, max_layers=100)
             self.print_stats(self.token_stats)
         except Exception as ex:
@@ -61,19 +61,18 @@ class TokenSpider(scrapy.Spider):
         children = self.find_children(element)
         for child in children:
             child_token_count = self.token_layer_stats_including_nested(child, token, token_stats, current_layer+1)
-            if child_token_count != 0:
-                print(f'Found token - child token count: {child_token_count} child: {child} curr layer: {current_layer}')
             curr_token_count += child_token_count
 
         token_stats[current_layer] = curr_token_count
 
         return curr_token_count
+    
 
     def find_children(self, element):
         children = []
         for child in element.contents:
             if isinstance(child, bs4.element.Doctype) or isinstance(child, bs4.element.Comment) \
-                or isinstance(child, bs4.element.NavigableString):
+                or isinstance(child, bs4.element.NavigableString) or isinstance(child, bs4.element.Script):
                 continue
             if child != '\n':
                 children.append(child)
@@ -82,9 +81,9 @@ class TokenSpider(scrapy.Spider):
 
     def token_layer_stats(self, element, token, token_stats, current_layer = 1, max_layers = 4):
        
-        if current_layer - 1 > max_layers:
-            # return 0
-            return self.count_token(element, token)
+        if current_layer > max_layers:
+            token_stats[current_layer] += self.count_token(element, token)
+            return 0
 
         if self.is_bottom(element):
             return self.count_token(element, token)
@@ -97,15 +96,25 @@ class TokenSpider(scrapy.Spider):
             if self.is_bottom(child):
                 curr_token_count += child_token_count
 
-        token_stats[current_layer] = curr_token_count
+        token_stats[current_layer] += curr_token_count
 
         return curr_token_count
 
 
     def is_bottom(self, element):
         return len(element.contents) == 1 and not isinstance(element.contents[0], bs4.element.Tag)
+    
+    def collect_script_tags(self, elements):
+        script_tags = elements.find_all('script')
+        return script_tags
 
 
     def print_stats(self, stats):
         print('------------------ stats -------------------')
         print(f"{stats}")
+
+        total = 0
+        for _, value in stats.items():
+            total += value
+
+        print(f'total: {total}')

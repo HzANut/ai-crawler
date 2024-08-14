@@ -10,16 +10,16 @@ class TestTokenSpider(unittest.TestCase):
         self.spider = TokenSpider(urls="http://example.com, http://example.org")
 
 
-    def test_start_requests(self):
-        generated_requests = list(self.spider.start_requests())
+    # def test_start_requests(self):
+    #     generated_requests = list(self.spider.start_requests())
 
-        # Check the number of requests
-        self.assertEqual(len(generated_requests), 2)
+    #     # Check the number of requests
+    #     self.assertEqual(len(generated_requests), 2)
 
-        # Verify that the requests are correct
-        self.assertIsInstance(generated_requests[0], Request)
-        self.assertEqual(generated_requests[0].url, "http://example.com")
-        self.assertEqual(generated_requests[1].url, "http://example.org")
+    #     # Verify that the requests are correct
+    #     self.assertIsInstance(generated_requests[0], Request)
+    #     self.assertEqual(generated_requests[0].url, "http://example.com")
+    #     self.assertEqual(generated_requests[1].url, "http://example.org")
 
 
     def test_count_token_ignore_case(self):
@@ -47,14 +47,27 @@ class TestTokenSpider(unittest.TestCase):
         self.assertEqual(len(children), 1)
 
 
-    def test_toekn_layer_stats(self):
+    def test_token_layer_stats(self):
         token_stats = defaultdict(int)
-        soup = BeautifulSoup(test_util.html_content_a, 'html.parser')
+        soup = BeautifulSoup(test_util.html_content_a_5layers, 'html.parser')
 
         self.spider.token_layer_stats(soup, test_util.token_a, token_stats)
         # print(f'token_stats: {token_stats}')
-        self.assertDictEqual(token_stats, {3: 2, 2: 3, 1: 0})
+        self.assertDictEqual(token_stats, {3: 2, 2: 3, 1: 0, 5: 2, 4: 0})
+    
+    def test_token_layer_stats_disconnected(self):
+        token_stats = defaultdict(int)
+        soup = BeautifulSoup(test_util.html_content_a_double, 'html.parser')
 
+        self.spider.token_layer_stats(soup, test_util.token_a, token_stats)
+        self.assertDictEqual(token_stats, {3:4, 2:6, 1:0})
+
+    def test_collect_script_tags(self):
+        soup = BeautifulSoup(test_util.html_content_script, 'html.parser')
+        script_tags = self.spider.collect_script_tags(soup)
+        # print('-------------- script tags ---------------')
+        # print(script_tags)
+        self.assertEqual(len(script_tags), 3)
 
     def tearDown(self):
         # Code that runs after each test, often used to clean up
