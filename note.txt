@@ -6,3 +6,10 @@ code .
 https://code.visualstudio.com/docs/python/python-tutorialn 
 
 PS C:\Users\xilua\My Drive\Workspace\llm_web_crawler\html_token_analyzer> python -m unittest .\html_token_analyzer_test\test_token_spider.py
+
+stats: defaultdict(<class 'int'>, {3: 0, 2: 0, 4: 0, 11: 0, 12: 0, 10: 0, 9: 0, 8: 0, 7: 0, 13: 0, 16: 0, 19: 0, 18: 0, 17: 0, 15: 0, 14: 0, 6: 0, 5: 0, 20: 0, 24: 0, 23: 0, 22: 0, 21: 0, 27: 0, 26: 0, 25: 0, 1: 0})
+
+UnicodeEncodeError: 'charmap' codec can't encode character '\ue80b' in position 5697: character maps to <undefined>PS C:\Users\xilua\My Drive\Workspace\llm_web_crawler\html_token_analyzer> scrapy crawl token_spider -a urls="https://www.microsoft.com/en-us/?p=swde" -a taken="Microsoft"
+
+
+scrapy crawl token_spider -a urls="https://www.microsoft.com/en-us/?p=swde" -a token="Microsoft" > output3.txt

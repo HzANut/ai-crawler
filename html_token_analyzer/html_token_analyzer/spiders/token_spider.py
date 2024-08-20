@@ -6,22 +6,26 @@ from bs4.element import Tag
 from nltk.tokenize import word_tokenize
 import nltk
 nltk.download('punkt')
-import os
+import re
 
 class TokenSpider(scrapy.Spider):
     name = "token_spider"
 
 
-    def __init__(self, urls=None, token=None, *args, **kwargs):
+    def __init__(self, urls=None, token=None, testing=None, *args, **kwargs):
         super(TokenSpider, self).__init__(*args, **kwargs)
+        print(f'urls - {urls}, token - {token}')
         self.urls = urls
         self.token = token
+        self.testing = True if testing else False
+        self.occurance_contents = ""
         self.token_stats = defaultdict(int)
 
 
     def start_requests(self):          
             yield scrapy.Request(url=self.urls, callback=self.parse)
 
+    
     def decoding_response(self, response):
         try:
             html_content = response.body.decode('utf-8').encode('utf-8','replace')
@@ -31,16 +35,18 @@ class TokenSpider(scrapy.Spider):
             except UnicodeDecodeError:
                 html_content = response.body.decode('ascii', errors='ignore')
         return html_content
+    
 
     def parse(self, response):
         try:
-            # print(response.body)
             soup = BeautifulSoup(self.decoding_response(response), 'lxml')
-            # print(f'soup:{soup.body.get_text()}')
+
+            self.write_occurrences(soup.body, self.token)
+
             self.token_layer_stats(soup.body, self.token, self.token_stats, current_layer=1, max_layers=100)
             self.print_stats(self.token_stats)
+            
         except Exception as ex:
-            # pass
             print(f'Error when doing token layer stats on element and token {self.token}:', ex)
 
 
@@ -68,11 +74,11 @@ class TokenSpider(scrapy.Spider):
         return curr_token_count
     
 
-    def find_children(self, element):
+    def find_children(self, element, script_tags_set):
         children = []
         for child in element.contents:
             if isinstance(child, bs4.element.Doctype) or isinstance(child, bs4.element.Comment) \
-                or isinstance(child, bs4.element.NavigableString) or isinstance(child, bs4.element.Script):
+                or isinstance(child, bs4.element.NavigableString) or child in script_tags_set:
                 continue
             if child != '\n':
                 children.append(child)
@@ -88,12 +94,18 @@ class TokenSpider(scrapy.Spider):
         if self.is_bottom(element):
             return self.count_token(element, token)
             
+        script_tags_set = set(self.collect_script_tags(element))
+
         curr_token_count = 0
 
-        children = self.find_children(element)
+        children = self.find_children(element, script_tags_set)
         for child in children:
             child_token_count = self.token_layer_stats(child, token, token_stats, current_layer+1, max_layers)
-            if self.is_bottom(child):
+                
+            if self.is_bottom(child) and child_token_count != 0:
+                if self.testing:
+                    self.occurance_contents += child.get_text() + '\n'
+                    
                 curr_token_count += child_token_count
 
         token_stats[current_layer] += curr_token_count
@@ -110,11 +122,36 @@ class TokenSpider(scrapy.Spider):
 
 
     def print_stats(self, stats):
-        print('------------------ stats -------------------')
+        print('\n------------------ stats -------------------')
         print(f"{stats}")
+        count = sum([count for _, count in stats.items()])
+        print(f'total count:{count}')
 
-        total = 0
-        for _, value in stats.items():
-            total += value
+    
+    def find_all_text_occurence(self, element, token):
+        token_occurrences = element.find_all(string=lambda text: token in text)
+        return token_occurrences
+    
+    def write_occurrences(self, element, token):
+        # print(f'soup:{soup.body.get_text()}')
+        # # cleaned_text = re.sub(r'\n+', '\n', self.find_all_text_occurence(element, token))
+        # cleaned_text = self.find_all_text_occurence(element, token)
+        cleaned_text = re.sub(r'\n+', '\n', element.get_text())
 
-        print(f'total: {total}')
+        # Write the cleaned text to a file
+        with open('raw_text.txt', 'w') as file:
+            file.write(cleaned_text)
+
+
+
+    def assert_result(self, url, element, token, stats):
+        expected_count = self.count_token(element, token)
+        actual_count = sum([count for _, count in stats.items()])
+
+        self.print_stats(stats)
+        if expected_count == actual_count:
+            print(f'Assert count [{expected_count}] - url [{url}] - token [{token}]')
+        else:
+            print(f'Not same expected [{expected_count}] - actual [{actual_count}] - url [{url}] - token [{token}]')
+            print(f'occurance: {self.occurance_contents}')
+        
