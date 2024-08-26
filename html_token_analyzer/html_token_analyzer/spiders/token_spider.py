@@ -12,18 +12,16 @@ class TokenSpider(scrapy.Spider):
     name = "token_spider"
 
 
-    def __init__(self, urls=None, token=None, testing=None, *args, **kwargs):
+    def __init__(self, urls=None, testing=None, *args, **kwargs):
         super(TokenSpider, self).__init__(*args, **kwargs)
-        print(f'urls - {urls}, token - {token}')
         self.urls = urls
-        self.token = token
         self.testing = True if testing else False
         self.occurance_contents = ""
         self.token_stats = defaultdict(int)
 
 
     def start_requests(self):          
-            yield scrapy.Request(url=self.urls, callback=self.parse)
+        yield scrapy.Request(url=self.urls, callback=self.parse)
 
     
     def decoding_response(self, response):
@@ -41,7 +39,7 @@ class TokenSpider(scrapy.Spider):
         try:
             soup = BeautifulSoup(self.decoding_response(response), 'lxml')
 
-            self.write_occurrences(soup.body, self.token)
+            # self.write_occurrences(soup.body, self.token)
 
             self.token_layer_stats(soup.body, self.token, self.token_stats, current_layer=1, max_layers=100)
             self.print_stats(self.token_stats)
@@ -50,28 +48,29 @@ class TokenSpider(scrapy.Spider):
             print(f'Error when doing token layer stats on element and token {self.token}:', ex)
 
 
-    def count_token(self, soup_element, token):
-        element_text = soup_element.get_text().lower()
-        return element_text.count(token.lower())
+    def count_token(self, soup_element):
+        word_count = len(re.findall(r'\b\w+\b', soup_element.get_text()))
+        return word_count
 
 
-    def token_layer_stats_including_nested(self, element, token, token_stats, current_layer=1, max_layers=4):
-        if current_layer - 1 > max_layers:
-            return self.count_token(element, token)
 
-        if len(element.contents) == 1 and not isinstance(element.contents[0], bs4.element.Tag):
-            return self.count_token(element, token)
+    # def token_layer_stats_including_nested(self, element, token, token_stats, current_layer=1, max_layers=4):
+    #     if current_layer - 1 > max_layers:
+    #         return self.count_token(element, token)
+
+    #     if len(element.contents) == 1 and not isinstance(element.contents[0], bs4.element.Tag):
+    #         return self.count_token(element, token)
             
-        curr_token_count = 0
+    #     curr_token_count = 0
 
-        children = self.find_children(element)
-        for child in children:
-            child_token_count = self.token_layer_stats_including_nested(child, token, token_stats, current_layer+1)
-            curr_token_count += child_token_count
+    #     children = self.find_children(element)
+    #     for child in children:
+    #         child_token_count = self.token_layer_stats_including_nested(child, token, token_stats, current_layer+1)
+    #         curr_token_count += child_token_count
 
-        token_stats[current_layer] = curr_token_count
+    #     token_stats[current_layer] = curr_token_count
 
-        return curr_token_count
+    #     return curr_token_count
     
 
     def find_children(self, element, script_tags_set):
@@ -85,14 +84,14 @@ class TokenSpider(scrapy.Spider):
         return children
 
 
-    def token_layer_stats(self, element, token, token_stats, current_layer = 1, max_layers = 4):
+    def token_layer_stats(self, element, token_stats, current_layer = 1, max_layers = 4):
        
         if current_layer > max_layers:
-            token_stats[current_layer] += self.count_token(element, token)
+            token_stats[current_layer] += self.count_token(element)
             return 0
 
         if self.is_bottom(element):
-            return self.count_token(element, token)
+            return self.count_token(element)
             
         script_tags_set = set(self.collect_script_tags(element))
 
@@ -100,7 +99,7 @@ class TokenSpider(scrapy.Spider):
 
         children = self.find_children(element, script_tags_set)
         for child in children:
-            child_token_count = self.token_layer_stats(child, token, token_stats, current_layer+1, max_layers)
+            child_token_count = self.token_layer_stats(child, token_stats, current_layer+1, max_layers)
                 
             if self.is_bottom(child) and child_token_count != 0:
                 if self.testing:
@@ -128,30 +127,8 @@ class TokenSpider(scrapy.Spider):
         print(f'total count:{count}')
 
     
-    def find_all_text_occurence(self, element, token):
-        token_occurrences = element.find_all(string=lambda text: token in text)
-        return token_occurrences
+    # def find_all_text_occurence(self, element, token):
+    #     token_occurrences = element.find_all(string=lambda text: token in text)
+    #     return token_occurrences
     
-    def write_occurrences(self, element, token):
-        # print(f'soup:{soup.body.get_text()}')
-        # # cleaned_text = re.sub(r'\n+', '\n', self.find_all_text_occurence(element, token))
-        # cleaned_text = self.find_all_text_occurence(element, token)
-        cleaned_text = re.sub(r'\n+', '\n', element.get_text())
-
-        # Write the cleaned text to a file
-        with open('raw_text.txt', 'w') as file:
-            file.write(cleaned_text)
-
-
-
-    def assert_result(self, url, element, token, stats):
-        expected_count = self.count_token(element, token)
-        actual_count = sum([count for _, count in stats.items()])
-
-        self.print_stats(stats)
-        if expected_count == actual_count:
-            print(f'Assert count [{expected_count}] - url [{url}] - token [{token}]')
-        else:
-            print(f'Not same expected [{expected_count}] - actual [{actual_count}] - url [{url}] - token [{token}]')
-            print(f'occurance: {self.occurance_contents}')
         

@@ -4,25 +4,23 @@ html_content_a_5layers = """
                 <div>
                     <span>A</span>
                         <div>
-                            <p>ba</p>
+                            <p>b a</p>
                         </div>
                         <div>
                             <p>ba</p>
                         </div>
-                    <div>Ta</div>
+                    <div>T a</div>
                 </div>
                 <p>AA</p>
             </a>
             """
-
-token_a = 'a'
 
 html_content_a = """
             <a>
                 <p>a</p>
                 <div>
                     <span>A</span>
-                    <div>Ta</div>
+                    <div>T a</div>
                 </div>
                 <p>AA</p>
             </a>
@@ -35,11 +33,11 @@ html_content_a_double = """
                     <span>A</span>
                     <div>Ta</div>
                 </div>
-                <p>AA</p>
+                <p>A A</p>
                 <p>a</p>
                 <div>
                     <span>A</span>
-                    <div>Ta</div>
+                    <div>s Ta</div>
                 </div>
                 <p>AA</p>
             </a>

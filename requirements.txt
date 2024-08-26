@@ -3,3 +3,5 @@ beautifulsoup4
 pytest
 nltk
 html5lib
+py7zr
+matplotlib
