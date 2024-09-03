@@ -1,3 +1,6 @@
+# Token stats Web spider
+token statistics on each layer of a web page
+
 ## To run spider
 `scrapy crawl token_spider -a urls=<url>`
 
