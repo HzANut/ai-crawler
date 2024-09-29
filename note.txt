@@ -13,3 +13,6 @@ UnicodeEncodeError: 'charmap' codec can't encode character '\ue80b' in position 
 
 
 scrapy crawl token_spider -a urls="https://www.microsoft.com/en-us/?p=swde" -a token="Microsoft" > output3.txt
+
+
+.\.venv\bin\Activate.ps1
